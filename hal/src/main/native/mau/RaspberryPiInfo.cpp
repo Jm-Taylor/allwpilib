@@ -262,9 +262,14 @@ static RaspberryPiModel getRaspberryPiModel(unsigned hwrev) {
 			return RaspberryPiModel::RPI3_BPLUS_R1_3;
 		case 0x9020e0:
 			return RaspberryPiModel::RPI3_APLUS_R1_0;
-		case 0xc03111:
-		case 0xb03111:
 		case 0xa03111:
+		case 0xb03111:
+		case 0xb03112:
+                case 0xb03114:
+		case 0xc03111:
+		case 0xc03112:
+		case 0xc03114:
+		case 0xd03114:
 			return RaspberryPiModel::RPI4_B;
 		default:
 			return RaspberryPiModel::UNKNOWN;
@@ -319,6 +324,9 @@ static uint32_t getRaspberryPiRamMB(unsigned hwrev) {
 			break;
 		case 4:
 			ram_mb = 4096;
+			break;
+		case 5:
+			ram_mb = 8192;
 			break;
 		}
 	}
@@ -403,39 +411,39 @@ static RaspberryPiUSBPort getRaspberryPIUSBPort(unsigned hwrev, std::string shor
 
 	switch(model) {
 		case RaspberryPiModel::RPI3_BPLUS_R1_3:
-			if (short_usb_device_id == "1-1.1.2") {
+			if (short_usb_device_id.rfind("1-1.1.2") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTA;
-			} else if (short_usb_device_id == "1-1.1.3") {
+			} else if (short_usb_device_id.rfind("1-1.1.3") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTB;
-			} else if (short_usb_device_id == "1-1.3") {
+			} else if (short_usb_device_id.rfind("1-1.3") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTC;
-			} else if (short_usb_device_id == "1-1.2") {
+			} else if (short_usb_device_id.rfind("1-1.2") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTD;
 			} else {
 				return RaspberryPiUSBPort::INVALID;
 			}
 			break;
 		case RaspberryPiModel::RPI3_B_R1_2:
-			if (short_usb_device_id == "1-1.2") {
+			if (short_usb_device_id.rfind("1-1.2") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTA;
-			} else if (short_usb_device_id == "1-1.3") {
+			} else if (short_usb_device_id.rfind("1-1.3") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTB;
-			} else if (short_usb_device_id == "1-1.4") {
+			} else if (short_usb_device_id.rfind("1-1.4") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTC;
-			} else if (short_usb_device_id == "1-1.5") {
+			} else if (short_usb_device_id.rfind("1-1.5") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTD;
 			} else {
 				return RaspberryPiUSBPort::INVALID;
 			}
 			break;
 		case RaspberryPiModel::RPI4_B:
-			if (short_usb_device_id == "1-1.3") {
+			if (short_usb_device_id.rfind("1-1.3") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTA;
-			} else if (short_usb_device_id == "1-1.4") {
+			} else if (short_usb_device_id.rfind("1-1.4") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTB;
-			} else if (short_usb_device_id == "1-1.1") {
+			} else if (short_usb_device_id.rfind("1-1.1") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTC;
-			} else if (short_usb_device_id == "1-1.2") {
+			} else if (short_usb_device_id.rfind("1-1.2") == 0) {
 				return RaspberryPiUSBPort::RPI_USB_PORTD;
 			} else {
 				return RaspberryPiUSBPort::INVALID;
@@ -462,6 +470,8 @@ list<USBSerialDeviceInfo> getRaspberryPiUSBSerialDeviceInfoList() {
 
 		// Example USB Device Paths on Raspberry Pi 3B+:
 		// ../../devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/tty/ttyACM0
+		// Example USB Device Paths on Raspberry Pi 4B:
+		// .../../devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.3/1-1.3.4/1-1.3.4:1.0/tty/ttyACM0
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*****<<<<<<<<<<<<<<<<
 		// The portion denoted by asterisk ("*") uniquely identifies one of four USB connectors on a RPI3B+
 
@@ -509,6 +519,7 @@ list<USBSerialDeviceInfo> getRaspberryPiUSBSerialDeviceInfoList() {
 						if (finalslashpos != std::string::npos) {
 							devpath.erase(finalcolonpos);
 						}
+						cout << "Found tty devpath:  " << devpath;
 						physical_usb_port = getRaspberryPIUSBPort(hwrev, devpath);
 					}
 				}
@@ -549,7 +560,7 @@ RaspberryPiDeviceInfo getRaspberryPiDeviceInfo() {
 }
 
 #if 0
-static int raspberry_pi_info_test_main() {
+int main() {
 
 	// Acquire/Display RPI Hardware Info
 	RaspberryPiDeviceInfo rpi_info = getRaspberryPiDeviceInfo();
@@ -587,5 +598,3 @@ static int raspberry_pi_info_test_main() {
     return 0;
 }
 #endif
-
-
