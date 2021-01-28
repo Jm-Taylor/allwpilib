@@ -45,6 +45,8 @@ int32_t HAL_WriteOSSerial(HAL_SerialPortHandle handle, const char* buffer,
 void HAL_FlushOSSerial(HAL_SerialPortHandle handle, int32_t* status);
 void HAL_ClearOSSerial(HAL_SerialPortHandle handle, int32_t* status);
 void HAL_CloseOSSerial(HAL_SerialPortHandle handle, int32_t* status);
+
+int HAL_GetOSSerialFD(HAL_SerialPortHandle handle, int32_t* status);
 #ifdef __cplusplus
 }  // extern "C"
 #endif
