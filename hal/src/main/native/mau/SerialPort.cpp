@@ -96,4 +96,7 @@ extern "C" {
     void HAL_CloseSerial(HAL_SerialPortHandle handle, int32_t* status) {
     	HAL_CloseOSSerial(handle, status);
     }
+    int HAL_GetSerialFD(HAL_SerialPortHandle handle, int32_t* status) {
+        return HAL_GetOSSerialFD(handle, status);
+    }
 }
