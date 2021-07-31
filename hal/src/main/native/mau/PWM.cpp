@@ -59,6 +59,7 @@ bool HAL_Internal_ActivatePWMGenerator(HAL_DigitalHandle pwmPortHandle, int32_t 
 	port->pwmgen_config.SetMaxDutyCycleValue(kDutyCycleTicks); /* Update Duty Cycle Range to match WPI Library cycle resolution (1 us/tick) */
 	if (!mau::vmxIO->ActivateSinglechannelResource(vmx_chan_info, &port->pwmgen_config, port->vmx_res_handle, status)) {
 		if (*status == VMXERR_IO_NO_UNALLOCATED_COMPATIBLE_RESOURCES) {
+			*status = 0;
 			VMXResourceHandle resourceWithAvailablePort;
 			bool allocated;
 			if (mau::vmxIO->GetResourceHandleWithAvailablePortForChannel(
