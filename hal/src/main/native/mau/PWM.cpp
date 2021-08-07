@@ -54,10 +54,10 @@ bool HAL_Internal_ActivatePWMGenerator(HAL_DigitalHandle pwmPortHandle, int32_t 
 
     HAL_SetPWMConfig(pwmPortHandle, 2.0, 1.501, 1.5, 1.499, 1.0, status);
 
-    /* Set Configuration to defaults, including WPI-library compliant PWM Frequency and DutyCycle */
     port->pwmgen_config = PWMGeneratorConfig(kPwmFrequencyHz);
-	port->pwmgen_config.SetMaxDutyCycleValue(kDutyCycleTicks); /* Update Duty Cycle Range to match WPI Library cycle resolution (1 us/tick) */
-	if (!mau::vmxIO->ActivateSinglechannelResource(vmx_chan_info, &port->pwmgen_config, port->vmx_res_handle, status)) {
+    port->pwmgen_config.SetMaxDutyCycleValue(kDutyCycleTicks); /* Update Duty Cycle Range to match WPI Library cycle resolution (1 us/tick) */
+
+    if (!mau::vmxIO->ActivateSinglechannelResource(vmx_chan_info, &port->pwmgen_config, port->vmx_res_handle, status)) {
 		if (*status == VMXERR_IO_NO_UNALLOCATED_COMPATIBLE_RESOURCES) {
 			*status = 0;
 			VMXResourceHandle resourceWithAvailablePort;
@@ -111,6 +111,7 @@ void HAL_FreePWMPort(HAL_DigitalHandle pwmPortHandle, int32_t* status) {
 
     VMXResourceHandle vmxResource = port->vmx_res_handle;
     mau::vmxIO->UnrouteChannelFromResource(port->vmx_chan_info.index, vmxResource, status);
+    port->vmx_res_handle = CREATE_VMX_RESOURCE_HANDLE(VMXResourceType::Undefined,INVALID_VMX_RESOURCE_INDEX);
     bool isActive = false;
     mau::vmxIO->IsResourceActive(vmxResource, isActive, status);
     if (isActive) {
@@ -484,20 +485,21 @@ void HAL_SetPWMPeriodScale(HAL_DigitalHandle pwmPortHandle, int32_t squelchMask,
 
     // The VMX-pi PWM resource has already been initialized at this point.
     // If the squelch mask is non-zero, deallocate the resource, reconfigure the PWM Generator Config
-    // with the appropriate
+    // with the appropriate OutputFilter, and re-activate any prevously-activated channels.
     if (squelchMask != 0) {
-		bool isActive = false;
-		mau::vmxIO->IsResourceActive(port->vmx_res_handle, isActive, status);
-		if(isActive) {
-			mau::vmxIO->DeallocateResource(port->vmx_res_handle, status);
-		}
+	bool isActive = false;
+	if (squelchMask == 1) {
+		port->pwmgen_config.SetFrameOutputFilter(PWMGeneratorConfig::FrameOutputFilter::x2);
+	} else if (squelchMask == 3) {
+		port->pwmgen_config.SetFrameOutputFilter(PWMGeneratorConfig::FrameOutputFilter::x4);
+	}
 
-		if (squelchMask == 1) {
-			port->pwmgen_config.SetFrameOutputFilter(PWMGeneratorConfig::FrameOutputFilter::x2);
-		} else if (squelchMask == 3) {
-			port->pwmgen_config.SetFrameOutputFilter(PWMGeneratorConfig::FrameOutputFilter::x4);
-		}
-		mau::vmxIO->ActivateSinglechannelResource(port->vmx_chan_info, &port->pwmgen_config, port->vmx_res_handle, status);
+	mau::vmxIO->IsResourceActive(port->vmx_res_handle, isActive, status);
+	if(isActive) {
+    		/* In order that the new FrameOutputFilter takes effect, first Deactivate, then re-Activate the resource. */
+    		mau::vmxIO->DeactivateResource(port->vmx_res_handle, status);
+		mau::vmxIO->ActivateResource(port->vmx_res_handle, status);
+	}
     }
 }
 

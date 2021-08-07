@@ -95,7 +95,7 @@ extern DigitalHandleResource<HAL_DigitalHandle, DigitalPort,
 /* HiCrDIO Channels:  [12-21] */
 /* CommDIO Channels:  [22-29] */
 
-HAL_DigitalHandle getDigitalHandleForVMXChannelIndex(VMXChannelIndex index);
+HAL_DigitalHandle getDigitalHandleForVMXChannelIndex(VMXChannelIndex index, HAL_HandleEnum handleType);
 HAL_DigitalHandle getDigitalHandleAndVMXChannelInfo(HAL_HandleEnum handleType, int32_t wpiLibPwmChannel, VMXChannelInfo& info, int32_t *status);
 std::shared_ptr<DigitalPort> allocateDigitalPort(HAL_DigitalHandle digHandle, HAL_HandleEnum handleType, int32_t *status);
 std::shared_ptr<DigitalPort> allocateDigitalHandleAndInitializedPort(HAL_HandleEnum handleType, int32_t wpiLibChannel, HAL_DigitalHandle& digHandle, int32_t *status);
