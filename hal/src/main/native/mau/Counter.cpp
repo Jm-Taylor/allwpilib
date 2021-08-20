@@ -743,7 +743,10 @@ void HAL_ResetCounter(HAL_CounterHandle counterHandle, int32_t* status) {
 	}
 
 	if (!INVALID_VMX_RESOURCE_HANDLE(counter->vmx_res_handle)) {
-		mau::vmxIO->InputCapture_Reset(counter->vmx_res_handle, status);
+		uint8_t retry_count = 3;
+		do { 
+			mau::vmxIO->InputCapture_Reset(counter->vmx_res_handle, status);
+		} while (mau::RetryWriteOnBoardCommError(status, retry_count)); 			
 	} else if (counter->proxy_encoder_handle != HAL_kInvalidHandle){
 		HAL_ResetEncoder(counter->proxy_encoder_handle, status);
 	}
@@ -770,6 +773,7 @@ int32_t HAL_GetCounter(HAL_CounterHandle counterHandle, int32_t* status) {
 			counter_value = ch2_count;
 		} else {
 			mau::vmxIO->InputCapture_GetCount(counter->vmx_res_handle, counter_value, status);
+			mau::ClearBoardCommErrorStatus(status);
 		}
 		if (counter->hal_counter_mode == HAL_Counter_Mode::HAL_Counter_kSemiperiod) {
 			if (counter->update_when_empty) {
@@ -860,6 +864,7 @@ HAL_Bool HAL_GetCounterStopped(HAL_CounterHandle counterHandle,
 		bool forward_direction;
 		bool active = false;
 		mau::vmxIO->InputCapture_InputStatus(counter->vmx_res_handle, forward_direction, active, status);
+		mau::ClearBoardCommErrorStatus(status);
 		return active;
 	} else if (counter->proxy_encoder_handle != HAL_kInvalidHandle) {
 		return HAL_GetEncoderStopped(counter->proxy_encoder_handle, status);
@@ -882,6 +887,7 @@ HAL_Bool HAL_GetCounterDirection(HAL_CounterHandle counterHandle,
 		bool forward_direction;
 		bool active = false;
 		mau::vmxIO->InputCapture_InputStatus(counter->vmx_res_handle, forward_direction, active, status);
+		mau::ClearBoardCommErrorStatus(status);
 		return forward_direction;
 	} else if (counter->proxy_encoder_handle != HAL_kInvalidHandle) {
 		return HAL_GetEncoderDirection(counter->proxy_encoder_handle, status);

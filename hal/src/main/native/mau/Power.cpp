@@ -17,9 +17,10 @@ namespace hal {
 
 extern "C" {
     double HAL_GetVinVoltage(int32_t* status) {
-    	float voltage = 0.0;
+        float default_voltage = 0.0f;
+        float voltage = default_voltage;
     	mau::vmxPower->GetSystemVoltage(voltage, status);
-    	return voltage;
+        return (double)mau::DefaultOnBoardCommError(status, voltage, default_voltage);
     }
 
     double HAL_GetVinCurrent(int32_t* status) {
@@ -50,6 +51,7 @@ extern "C" {
     			voltage = 0.0;
     		}
     	}
+        mau::ClearBoardCommErrorStatus(status);
 
         return voltage;
     }
@@ -62,6 +64,7 @@ extern "C" {
     			current = 0.0;
     		}
     	}
+        mau::ClearBoardCommErrorStatus(status);
 
         return current;
     }
@@ -74,6 +77,7 @@ extern "C" {
     			active = false;
     		}
     	}
+        mau::ClearBoardCommErrorStatus(status);
 
         return active;
     }
@@ -87,7 +91,8 @@ extern "C" {
     			num5Vfaults = 1;
     		}
     	}
-
+        mau::ClearBoardCommErrorStatus(status);
+        
         return num5Vfaults;
     }
 
@@ -99,6 +104,7 @@ extern "C" {
     			voltage = 0.0;
     		}
     	}
+        mau::ClearBoardCommErrorStatus(status);
 
         return voltage;
     }
@@ -111,7 +117,8 @@ extern "C" {
     			current = 0.0;
     		}
     	}
-
+        mau::ClearBoardCommErrorStatus(status);
+        
         return current;
     }
 
@@ -123,7 +130,8 @@ extern "C" {
     			active = false;
     		}
     	}
-
+        mau::ClearBoardCommErrorStatus(status);
+        
         return active;
     }
 
@@ -136,7 +144,8 @@ extern "C" {
     			num5Vfaults = 1;
     		}
     	}
-
+        mau::ClearBoardCommErrorStatus(status);
+        
         return num5Vfaults;
     }
 }  // extern "C"

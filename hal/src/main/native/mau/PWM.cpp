@@ -241,7 +241,10 @@ void HAL_SetPWMRaw(HAL_DigitalHandle pwmPortHandle, int32_t value, int32_t* stat
     	portIndex = 1;
     }
 
-    mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, value, status);
+    uint8_t retry_count = 3;
+    do { 
+        mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, value, status); 
+    } while (mau::RetryWriteOnBoardCommError(status, retry_count));
 }
 
 /**
@@ -296,7 +299,10 @@ void HAL_SetPWMSpeed(HAL_DigitalHandle pwmPortHandle, double speed, int32_t* sta
     	portIndex = 1;
     }
 
-    mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, dutyCycle, status);
+    uint8_t retry_count = 3;
+    do { 
+        mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, dutyCycle, status);
+    } while (mau::RetryWriteOnBoardCommError(status, retry_count));    
 }
 
 /**
@@ -332,7 +338,10 @@ void HAL_SetPWMPosition(HAL_DigitalHandle pwmPortHandle, double pos, int32_t* st
     	portIndex = 1;
     }
 
-    mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, dutyCycle, status);
+    uint8_t retry_count = 3;
+    do { 
+        mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, dutyCycle, status);
+    } while (mau::RetryWriteOnBoardCommError(status, retry_count));     
 }
 
 void HAL_SetPWMDisabled(HAL_DigitalHandle pwmPortHandle, int32_t* status) {
@@ -347,7 +356,10 @@ void HAL_SetPWMDisabled(HAL_DigitalHandle pwmPortHandle, int32_t* status) {
     	portIndex = 1;
     }
 
-    mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, 0, status);
+    uint8_t retry_count = 3;
+    do { 
+        mau::vmxIO->PWMGenerator_SetDutyCycle(port->vmx_res_handle, portIndex, 0, status);
+    } while (mau::RetryWriteOnBoardCommError(status, retry_count));      
 }
 
 /**
@@ -368,12 +380,10 @@ int32_t HAL_GetPWMRaw(HAL_DigitalHandle pwmPortHandle, int32_t* status) {
     	portIndex = 1;
     }
 
-    uint16_t currDutyCycleValue;
-    if (mau::vmxIO->PWMGenerator_GetDutyCycle(port->vmx_res_handle, portIndex, &currDutyCycleValue, status)) {
-    	return static_cast<int32_t>(currDutyCycleValue);
-    } else {
-    	return 0;
-    }
+    uint16_t currDutyCycleValue = 0;
+    mau::vmxIO->PWMGenerator_GetDutyCycle(port->vmx_res_handle, portIndex, &currDutyCycleValue, status);
+    mau::ClearBoardCommErrorStatus(status);
+    return static_cast<int32_t>(currDutyCycleValue);
 }
 
 /**

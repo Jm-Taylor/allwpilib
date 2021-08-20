@@ -306,7 +306,10 @@ extern "C" {
         	return;
         }
 
-    	mau::vmxIO->DIO_Set(port->vmx_res_handle, value ? true : false, status);
+        uint8_t retry_count = 3;
+        do { 
+                mau::vmxIO->DIO_Set(port->vmx_res_handle, value ? true : false, status);
+        } while (RetryWriteOnBoardCommError(status, retry_count));         
     }
 
     /**
@@ -374,9 +377,10 @@ extern "C" {
         	return false;
         }
 
-    	bool high = true;
-    	mau::vmxIO->DIO_Get(port->vmx_res_handle, high, status);
-    	return high;
+        bool high = true;
+        mau::vmxIO->DIO_Get(port->vmx_res_handle, high, status);
+        ClearBoardCommErrorStatus(status);
+        return high;
     }
 
     /**
@@ -425,10 +429,13 @@ extern "C" {
 
     	/* We assume here that all pulses are "active high", since interestingly */
     	/* the active state is not provided in the parameters to this function. */
-    	uint32_t num_microseconds = static_cast<uint32_t>(pulseLength / 1.0e-6);
-    	if (!mau::vmxIO->DIO_Pulse(port->vmx_res_handle, true /*high*/, num_microseconds, status)) {
-    		return;
-        }
+
+        uint8_t retry_count = 3;
+        uint32_t num_microseconds = static_cast<uint32_t>(pulseLength / 1.0e-6);
+        do { 
+                mau::vmxIO->DIO_Pulse(port->vmx_res_handle, true /*high*/, num_microseconds, status);
+        } while (RetryWriteOnBoardCommError(status, retry_count));         
+        return;
     }
 
     /**
@@ -449,10 +456,9 @@ extern "C" {
         	return false;
         }
 
-    	bool is_pulsing;
-        if (!mau::vmxIO->DIO_IsPulsing(port->vmx_res_handle, is_pulsing, status)) {
-        	return false;
-        }
+        bool is_pulsing = false;
+        mau::vmxIO->DIO_IsPulsing(port->vmx_res_handle, is_pulsing, status);
+        ClearBoardCommErrorStatus(status);
 
         return is_pulsing;
     }
@@ -465,8 +471,9 @@ extern "C" {
 	// NOTE:  This does not appear to be invoked from anywhere in wpilibc.
     HAL_Bool HAL_IsAnyPulsing(int32_t* status) {
         uint8_t num_pulsing = 0;
-    	mau::vmxIO->DIO_GetNumPulsing(num_pulsing);
-    	return (num_pulsing > 0);
+        mau::vmxIO->DIO_GetNumPulsing(num_pulsing);
+        ClearBoardCommErrorStatus(status);        
+        return (num_pulsing > 0);
     }
 
     /**

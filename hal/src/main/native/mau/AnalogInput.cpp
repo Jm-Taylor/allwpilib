@@ -142,10 +142,10 @@ extern "C" {
             return 0;
         }
         uint32_t instantaneousValue;
-    	if (mau::vmxIO->Accumulator_GetInstantaneousValue(port->vmx_res_handle, instantaneousValue, status)) {
-    		return static_cast<int32_t>(instantaneousValue);
-    	}
-        return 0;
+    	mau::vmxIO->Accumulator_GetInstantaneousValue(port->vmx_res_handle, instantaneousValue, status);
+        instantaneousValue = mau::DefaultOnBoardCommError(status, instantaneousValue, port->last_adc_counts);
+
+        return static_cast<int32_t>(instantaneousValue);
     }
 
     /* Returns value in ADC counts after Oversample/Average engine output */
@@ -156,10 +156,10 @@ extern "C" {
             return 0;
         }
         uint32_t averageValue;
-    	if (mau::vmxIO->Accumulator_GetAverageValue(port->vmx_res_handle, averageValue, status)) {
-    		return static_cast<int32_t>(averageValue);
-    	}
-        return 0;
+    	mau::vmxIO->Accumulator_GetAverageValue(port->vmx_res_handle, averageValue, status);
+        averageValue = mau::DefaultOnBoardCommError(status, averageValue, port->last_adc_counts);	
+        
+        return static_cast<int32_t>(averageValue);
     }
 
     int32_t HAL_GetAnalogVoltsToValue(HAL_AnalogInputHandle analogPortHandle, double voltage, int32_t* status) {
@@ -189,18 +189,19 @@ extern "C" {
             *status = HAL_HANDLE_ERROR;
             return 0.0;
         }
-
+        
         float averageVoltage;
-    	if (mau::vmxIO->Accumulator_GetAverageVoltage(port->vmx_res_handle, averageVoltage, status)) {
-    		return static_cast<double>(averageVoltage);
-    	}
-        return 0.0f;
+    	mau::vmxIO->Accumulator_GetAverageVoltage(port->vmx_res_handle, averageVoltage, status);
+        averageVoltage = mau::DefaultOnBoardCommError(status, averageVoltage, port->last_adc_voltage);        
+        
+        return static_cast<double>(averageVoltage);        
     }
 
     int32_t HAL_GetAnalogLSBWeight(HAL_AnalogInputHandle analogPortHandle, int32_t* status) {
 		float full_scale_voltage = 5.0;
 		constexpr int32_t kNanovoltsPerVolt = 1000000000;
-    	mau::vmxIO->Accumulator_GetFullScaleVoltage(full_scale_voltage, status);
+        mau::vmxIO->Accumulator_GetFullScaleVoltage(full_scale_voltage, status);
+        mau::ClearBoardCommErrorStatus(status);
 		double full_scale_nanovolts = static_cast<double>(full_scale_voltage) * kNanovoltsPerVolt;
 		return static_cast<int32_t>(full_scale_nanovolts);
     }

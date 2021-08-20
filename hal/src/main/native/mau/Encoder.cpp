@@ -285,7 +285,10 @@ void HAL_ResetEncoder(HAL_EncoderHandle encoderHandle, int32_t* status) {
 		return;
 	}
 
-	mau::vmxIO->Encoder_Reset(encoder->vmx_res_handle, status);
+	uint8_t retry_count = 3;
+	do { 
+		mau::vmxIO->Encoder_Reset(encoder->vmx_res_handle, status);
+	} while (mau::RetryWriteOnBoardCommError(status, retry_count)); 	
 }
 
 double HAL_GetEncoderPeriod(HAL_EncoderHandle encoderHandle, int32_t* status) {
@@ -297,6 +300,7 @@ double HAL_GetEncoderPeriod(HAL_EncoderHandle encoderHandle, int32_t* status) {
 
 	uint16_t last_pulse_microseconds = 0;
 	mau::vmxIO->Encoder_GetLastPulsePeriodMicroseconds(encoder->vmx_res_handle, last_pulse_microseconds, status);
+	mau::ClearBoardCommErrorStatus(status);
 	if (last_pulse_microseconds == 0) return 0.0;
 
 	return static_cast<double>(last_pulse_microseconds) / 1000000.0;
@@ -343,7 +347,7 @@ HAL_Bool HAL_GetEncoderStopped(HAL_EncoderHandle encoderHandle,
 	bool forward = true;
 	bool active = false;
 	mau::vmxIO->InputCapture_InputStatus(encoder->vmx_res_handle, forward, active, status);
-
+	mau::ClearBoardCommErrorStatus(status);
 	return !active;
 }
 
@@ -358,7 +362,7 @@ HAL_Bool HAL_GetEncoderDirection(HAL_EncoderHandle encoderHandle,
 	bool forward = true;
 	bool active = false;
 	mau::vmxIO->InputCapture_InputStatus(encoder->vmx_res_handle, forward, active, status);
-
+	mau::ClearBoardCommErrorStatus(status);
 	return encoder->reverse_direction ? !forward : forward;
 }
 

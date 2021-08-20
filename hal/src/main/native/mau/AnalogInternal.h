@@ -31,6 +31,8 @@ namespace hal {
     	VMXResourceHandle vmx_res_handle = CREATE_VMX_RESOURCE_HANDLE(VMXResourceType::Undefined,INVALID_VMX_RESOURCE_INDEX);
     	AccumulatorConfig vmx_config;
         int32_t channel;		/* WPI Library Channel Number (in Analog Channel Address Domain) */
+	uint32_t last_adc_counts = 0;
+	float last_adc_voltage = 0.0;
     };
 
     extern IndexedHandleResource<HAL_AnalogInputHandle, hal::AnalogPort,
