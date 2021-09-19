@@ -63,6 +63,8 @@ namespace mau {
     // do {
     //   mau::vmx->WriteSomething(int what, status);
     // } while ( VerifiedWrite(status, retry_count);
+    // Return:  true:  a retry due to board comm error is required.
+    //          false:  no board comm error occurred, so no retry is required.
     
     inline bool RetryWriteOnBoardCommError(int32_t *status, uint8_t& remaining_retry_count) {
         if (remaining_retry_count == 0) {
@@ -70,12 +72,12 @@ namespace mau {
         }
         if (!status) return false;
         if (VMXERR_IO_BOARD_COMM_ERROR == *status) {
-            // Signal need for a retry following a board comm error
+            // Signal need for a retry following a board comm error, as long as there are remaining retry attempts.
             *status = 0;
             remaining_retry_count--;
-            return (remaining_retry_count == 0);		
+            return (remaining_retry_count > 0);		
         } else if (0 == *status) {
-            return true;
+            return false;
         } else {
             // In case of a non-board comm error, no retries should occur
             return false;
