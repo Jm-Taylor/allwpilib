@@ -1,4 +1,4 @@
-#include "ctre/phoenix/Platform/Platform.h"
+#include "ctre/phoenix/platform/Platform.h"
 #include "ctre/phoenix/ErrorCode.h"
 
 #include <net/if.h>

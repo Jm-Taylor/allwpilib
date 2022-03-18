@@ -1,0 +1,70 @@
+Current Raspberry PI OS Version:  Buster
+
+1) Ensure that latest vmxpi-hal is installed.  See instructions at https://kauailabs.com/apt, including:
+   sudo apt-get install vmxpi-hal
+
+2) Clone "allwpilib" repo from KauaiLabs Github (master branch)
+
+3) Install gradle (v6) [v. 4.4.1 installed]
+
+4) Install cmake
+
+5) Setup JAVA_HOME, PATH to point to java 
+
+   NOTE:  Java 11 is installed with Buster.
+
+   Make sure JAVA_HOME (in ~/.bashrc) is set correctly, and on the PATH.
+
+   export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-armhf"
+   export PATH=$PATH:$JAVA_HOME/bin
+
+   This needs to be done before running cmake below.
+
+6) retrieve, build openccv 3.4.7 (including java portions)
+   
+   Open repo at opencv github
+   Navigate to 3.4.7 branch
+   Download .zip of 3.4.7 branch
+   Extract to /home/pi
+   Create build subdirectory, change to this directory
+   Run:
+       Cmake -D CMAKE_BUILD_TYPE=RELEASE ..
+       make
+       make install
+
+7) Phoenix:
+    Navigate to CrossTheRoadElec github, Phoenix-Linux-SocketCAN-Example
+    Checkout to /home/pi/Phoenix-Linux-SocketCAN-Example
+    The required file is Platform.h
+
+8) Configure Maven/Gradle
+
+    cd ~/.gnupg
+    # Retrieve secret key
+    ftp ftp.kauailabs.com (enter kauailabs buildmaster credentials)
+    cd gpg/sec
+    bin
+    get dpkg_kauailabs_sec.gpg
+
+    # Install secret key into secring.gpg
+    gpg --no-default-keyring secring.gpg --import dpkg_kauailabs_sec.gpg
+    # NOTE:  Additional instructions, in case necessary:
+    # To import the secret key:
+    # gpg --import dpkg_kauailabs_sec.gpg
+
+    # To import the public key:
+    Follow the instructions at http://www.kauailabs.com/apt for installing the public key from the MIT keyserver
+
+    # Configure gradle properties for signing/connecting to sonatype servers
+    cd ~/.gradle
+    nano gradle.properties, adding:
+    sonatypeUsername=slibert
+    sonatypePassword=Redskin7@123
+    signing.keyId=74BBDA3E
+    signing.password=
+    signing.secretKeyRingFile=/home/pi/.gnupg/secring.gpg
+
+9) Run ./build_and_publish.sh from allwpilib/KauaiLabs/BuildScripts
+
+    Follow instructions at end of script to upload/release the build to Maven Central.
+
