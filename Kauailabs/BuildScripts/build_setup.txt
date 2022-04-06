@@ -1,13 +1,28 @@
+Overview:  This document describes:
+
+- Build Machine Setup
+- Release Process
+- Publication
+
+A) *** Build Machine Setup ***
+
+NOTE:  These instructions are current as of the v2020.3.2-vmxpi-XXX releases
+
 Current Raspberry PI OS Version:  Buster
 
 1) Ensure that latest vmxpi-hal is installed.  See instructions at https://kauailabs.com/apt, including:
    sudo apt-get install vmxpi-hal
+   Ensure that ldconfig is succesfully run after this installation, so that the latest vmxpi_hal_cpp.so is 
+   located at /usr/local/lib/vmxpi
+   Ensure that the vmx-pi include files are locatd at /usr/local/include/vmxpi
 
-2) Clone "allwpilib" repo from KauaiLabs Github (master branch)
+2) Clone "allwpilib" repo from KauaiLabs Github (master branch) into ~.  It's final location should be ~/allwpilib
 
-3) Install gradle (v6) [v. 4.4.1 installed]
+3) Install gradle via apt (v6) [v. 4.4.1 installed]
 
-4) Install cmake
+4) Install cmake via apt
+
+4b) Install ftp aot
 
 5) Setup JAVA_HOME, PATH to point to java 
 
@@ -18,24 +33,42 @@ Current Raspberry PI OS Version:  Buster
    export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-armhf"
    export PATH=$PATH:$JAVA_HOME/bin
 
-   This needs to be done before running cmake below.
+   NOTE:  This needs to be done before running cmake below, as both opencv and WPI depend upon it.
 
 6) retrieve, build openccv 3.4.7 (including java portions)
    
+   Note:  The version of opencv used here should match the opencv version used by the WPI Library.
+
    Open repo at opencv github
    Navigate to 3.4.7 branch
    Download .zip of 3.4.7 branch
    Extract to /home/pi
    Create build subdirectory, change to this directory
    Run:
-       Cmake -D CMAKE_BUILD_TYPE=RELEASE ..
-       make
-       make install
+       cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_CXX_FLAGS+=-latomic -DOPENCV_EXTRA_EXE_LINKER_FLAGS=+-latomic ..
+       make -j5 #compile using 5 separate compiler threads, to speed up the build
+       sudo make install
+
+   #NOTE:  It may be required to disable building of precompiled headers (ENABLE_PRECOMPILED_HEADER).
+   #In this case, the option was disabled using cmake-gui before configuring/generating the opencv makefiles
+   #And notably in this case, when using cmake-gui, this was the only option that needed to be changed from the default values.
 
 7) Phoenix:
+
+    The CAN interface to VMX-pi is made available to CTRE Phoenix software by conforming to the Phoenix CAN Platform interface.
+
+    To install the Phoenix CAN Platform Interface:
+
     Navigate to CrossTheRoadElec github, Phoenix-Linux-SocketCAN-Example
     Checkout to /home/pi/Phoenix-Linux-SocketCAN-Example
     The required file is Platform.h
+
+    NOTE:  An older version is currently use, corresponding to Phoenix release 5.18.3.
+    This commit identifier is f113040.
+
+    To acquire this version, issue this git command:
+    
+    git checkout f113040d6a3bc01074b963ecfb41637875c30d62
 
 8) Configure Maven/Gradle
 
@@ -47,24 +80,65 @@ Current Raspberry PI OS Version:  Buster
     get dpkg_kauailabs_sec.gpg
 
     # Install secret key into secring.gpg
-    gpg --no-default-keyring secring.gpg --import dpkg_kauailabs_sec.gpg
-    # NOTE:  Additional instructions, in case necessary:
-    # To import the secret key:
-    # gpg --import dpkg_kauailabs_sec.gpg
-
-    # To import the public key:
-    Follow the instructions at http://www.kauailabs.com/apt for installing the public key from the MIT keyserver
+    gpg --import dpkg_kauailabs_sec.gpg
+    gpg --export-secret-keys > secring.gpg
 
     # Configure gradle properties for signing/connecting to sonatype servers
     cd ~/.gradle
     nano gradle.properties, adding:
-    sonatypeUsername=slibert
-    sonatypePassword=Redskin7@123
+    sonatypeUsername=<kauailabs sonatype account>
+    sonatypePassword=<kauailabs sonatype password>
     signing.keyId=74BBDA3E
     signing.password=
     signing.secretKeyRingFile=/home/pi/.gnupg/secring.gpg
 
+    # NOTE:  If the kauailabs import key is also desired:
+    Follow the instructions at http://www.kauailabs.com/apt for installing the public key from the MIT keyserver
+
 9) Run ./build_and_publish.sh from allwpilib/KauaiLabs/BuildScripts
 
+    Before running the build, ensure that the proper release tag is present.  As described below, the build
+    process will identify the build release using the release tag.
+
     Follow instructions at end of script to upload/release the build to Maven Central.
+
+B) *** Release Process ***
+
+The Kauailabs Github "allwpilib" repo contains the source code for this project.
+This is a fork off of the official WPI Library "allwpilib" repo.
+
+As of this writing, this was forked off of 2020.3.2 release of WPI Library.
+
+Each release is identified by a Git tag.
+
+To list each tag available in the repo, enter this command:
+
+- git tag
+
+Both the tags from the WPI repo as well as tags from the Kauailabs allwpilib fork are present:
+
+Kauailabs tags are formatted as follows:
+
+<base>-vmxpi-<_release>
+E.g., v2020.3.2-vmxpi-12
+
+- The "base" of the tag (e.g., v2020.3.2) matches the WPI Library release version
+- To "suffix" of the tag (e.g., -vmxpi-12) indicates it's a vmxpi release, and the release number
+- The highest release number is the most recent.
+
+For each release of this software, a "Release" should be created in github, as follows:
+
+- In the kauailabs allwpilib repo, navigate to the "Releases" tag.
+- Draft a new release
+- Create a new tag:  via the "Choose a tag" dropdown menu
+- Format the tag using the "base" and "suffix" as described above.  If the most recent tag is:
+  - v2020.3.2.vmxpi-12
+  then create the new tag as -v2020.3.2.vmxpi-13
+- Then, publish the release
+- Then in the local repo, perform a git pull to retrieve all the latest tags
+- Note that the build_and_publish.sh script will find the most recent tag, and the build's version will be the same as this tag.
+
+C) *** Publication ***
+
+- 
 
