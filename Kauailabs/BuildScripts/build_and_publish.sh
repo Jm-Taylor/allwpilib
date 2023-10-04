@@ -23,7 +23,7 @@ do
 		mkdir wpilib_build_${BUILD_DIR}/
 		cd wpilib_build_${BUILD_DIR}
 		export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
-		cmake -D WITHOUT_ALLWPILIB=OFF -D WITHOUT_JAVA=${BUILD_CPP_ONLY} -DCMAKE_BUILD_TYPE=${BUILDTYPE} -DBUILD_SHARED_LIBS=${SHARED_LIBS} -D OpenCV_DIR=/home/pi/opencv-3.4.7/build ~/allwpilib
+		cmake -D WITHOUT_ALLWPILIB=OFF -D WITHOUT_JAVA=${BUILD_CPP_ONLY} -DCMAKE_BUILD_TYPE=${BUILDTYPE} -DBUILD_SHARED_LIBS=${SHARED_LIBS} -D OpenCV_DIR=/home/pi/opencv/build ~/allwpilib
 		make -j5
 		sudo make install
 		cd hal
