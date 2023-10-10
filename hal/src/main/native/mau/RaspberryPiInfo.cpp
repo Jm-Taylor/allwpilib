@@ -270,6 +270,8 @@ static RaspberryPiModel getRaspberryPiModel(unsigned hwrev) {
 		case 0xc03112:
 		case 0xc03114:
 		case 0xd03114:
+		case 0xc03115:
+		case 0xd03115:
 			return RaspberryPiModel::RPI4_B;
 		default:
 			return RaspberryPiModel::UNKNOWN;
