@@ -59,7 +59,7 @@ constexpr float kDefaultPwmCenter = 1.5;
 constexpr int32_t kDefaultPwmStepsDown = 1500;
 constexpr int32_t kPwmDisabled = 0;
 
-constexpr uint32_t kPwmFrequencyHz = 50;
+constexpr uint32_t kPwmFrequencyHz = 200;
 constexpr uint16_t kDutyCycleTicks = 5000;
 
 struct DigitalPort {
